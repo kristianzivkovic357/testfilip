@@ -455,7 +455,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       async.each(odg,function(alert,callb)
       {
         responseToUser[alert.nazivAlerta]=alert;
-        matching.find({idalert:new ObjectId(odg.id),"seen":0}).limit(30).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
+        matching.find({idalert:new ObjectId(odg.id),"seen":0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO KATASTROFA PO EFIKASNOST
         {
           if(!matchings)console.log('matcg ne valja');
            responseToUser[alert.nazivAlerta].numberOfUnseenAds=matchings.length;
@@ -496,7 +496,7 @@ app.post('/givealerts',function(req,res)
   var alerts=db.collection('alerts');
   var matching=db.collection('matching');
   console.log(req.body);
-    matching.find({"idalert":new ObjectId(req.body.idOfAlert)}).toArray(function(err,odg)
+    matching.find({"idalert":new ObjectId(req.body.idOfAlert)}).limit(30).toArray(function(err,odg)
     {
       console.log(odg);
 
