@@ -495,42 +495,51 @@ app.post('/givealerts',function(req,res)
 
   var alerts=db.collection('alerts');
   var matching=db.collection('matching');
-  console.log(req.body);
-    matching.find({"idalert":new ObjectId(req.body.idOfAlert)}).limit(30).toArray(function(err,odg)
-    {
-      console.log(odg);
+    var pageNum= req.body.pageNumAlert;
+    pageNum= pageNum>0 ? pageNum:0;
 
-      if(odg.length)
+    var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
+    cursor.count(function(e,count)
+    {
+      cursor.skip(pageNum*18).limit(18).toArray(function(err,odg)
       {
-         var resp=[];
-          
-          async.each(odg,function(match,callback)
-          {
-            var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA
-            oglasi.find({"link":match.idogl}).toArray(function(err,objToSend)
-            {
-              resp.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
-              callback();
-              //samo gledam kad je kraj
-            })
-            match.seen=1;
-            matching.update({"_id":new ObjectId(match._id)},match,function(err,resp)
-            {
-              if(err)console.log(err);
-            })
-        
-        },function(err)
+        console.log(odg);
+
+        if(odg.length)
         {
-          res.send(resp);
+          var respObj={};
+          respObj.numberOfAdverts=count;
+          var data=[];
+            
+            async.each(odg,function(match,callback)
+            {
+              var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA
+              oglasi.find({"link":match.idogl}).toArray(function(err,objToSend)
+              {
+                data.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
+                callback();
+                //samo gledam kad je kraj
+              })
+              match.seen=1;
+              matching.update({"_id":new ObjectId(match._id)},match,function(err,resp)
+              {
+                if(err)console.log(err);
+              })
+          
+          },function(err)
+          {
+            respObj.data=data;
+            res.send(respObj);
+            res.end();
+          })
+        }
+        else
+        {
+          console.log("NISTA NIJE PRONADJENO");
           res.end();
-        })
-      }
-      else
-      {
-        console.log("NISTA NIJE PRONADJENO");
-        res.end();
-      }
-    })
+        }
+      })
+  });
 
   })
 app.get('/logout',function(req,res)
