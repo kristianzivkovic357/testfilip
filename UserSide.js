@@ -491,56 +491,59 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
         });
   });
 app.post('/givealerts',function(req,res)
-{
-
-  var alerts=db.collection('alerts');
-  var matching=db.collection('matching');
-    var pageNum= req.body.pageNumAlert;
-    pageNum= pageNum>0 ? pageNum:0;
-
-    var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
-    cursor.count(function(e,count)
-    {
-      cursor.skip(pageNum*18).limit(18).toArray(function(err,odg)
+  {
+  
+    var alerts=db.collection('alerts');
+    
+      var pageNum= req.body.pageNumAlert;
+      pageNum= pageNum>0 ? pageNum:0;
+      alerts.findOne({"_id":new ObjectId(req.body.idOfAlert)},function(err,alert)
       {
-        console.log(odg);
-
-        if(odg.length)
+        var matching=db.collection(alert.userId.toString());//looking in the collection of only this user
+        var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
+        cursor.count(function(e,count)
         {
-          var respObj={};
-          respObj.numberOfAdverts=count;
-          var data=[];
-            
-            async.each(odg,function(match,callback)
-            {
-              var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA
-              oglasi.find({"link":match.idogl}).toArray(function(err,objToSend)
-              {
-                data.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
-                callback();
-                //samo gledam kad je kraj
-              })
-              match.seen=1;
-              matching.update({"_id":new ObjectId(match._id)},match,function(err,resp)
-              {
-                if(err)console.log(err);
-              })
-          
-          },function(err)
+          cursor.skip(pageNum*18).limit(18).toArray(function(err,odg)
           {
-            respObj.data=data;
-            res.send(respObj);
-            res.end();
+            console.log(odg);
+  
+            if(odg.length)
+            {
+              var respObj={};
+              respObj.numberOfAdverts=count;
+              var data=[];
+                
+                async.each(odg,function(match,callback)
+                {
+                  var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA
+                  oglasi.find({"link":match.idogl}).toArray(function(err,objToSend)
+                  {
+                    data.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
+                    callback();
+                    //samo gledam kad je kraj
+                  })
+                  match.seen=1;
+                  matching.update({"_id":new ObjectId(match._id)},match,function(err,resp)
+                  {
+                    if(err)console.log(err);
+                  })
+              
+              },function(err)
+              {
+                respObj.data=data;
+                res.send(respObj);
+                res.end();
+              })
+            }
+            else
+            {
+              console.log("NISTA NIJE PRONADJENO");
+              res.end();
+            }
           })
-        }
-        else
-        {
-          console.log("NISTA NIJE PRONADJENO");
-          res.end();
-        }
-      })
-  });
-
+      });
+    })
+  
   })
 app.get('/logout',function(req,res)
 {
