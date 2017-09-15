@@ -4,11 +4,11 @@ var bodyParser = require('body-parser');
 var app=express();
 var mongo=require('./mongo');
 var async=require('async')
-var ObjectId = require('mongodb').ObjectId; 
+var ObjectId = require('mongodb').ObjectId;
 var exec=require('child_process').exec;
 //var sender=require('./sender.js');
 //var sql=require('./sql.js');
-/*var child = exec('node ./senderb.js');
+var child = exec('node ./senderb.js');
 child.stdout.on('data', function(data) {
     console.log('stdout: ' + data);
 });
@@ -17,18 +17,33 @@ child.stderr.on('data', function(data) {
 });
 child.on('close', function(code) {
     console.log('closing code: ' + code);
-});*/
+});
 app.use(session({
   cookieName: 'session',
   secret: 'Vojvoda*?od?!Vince357',
   duration: 10000 * 60 * 1000,
   activeDuration: 10000 * 60 * 1000,
 }));
-
+function generateHash(numberOfChars)
+{
+  var text='';
+  var possible="abcdefghijklmnopqrstuvwxyz0123456789"
+  for(var i=0;i<numberOfChars;i++)
+  {
+      min = 0
+      max = possible.length-1;
+      text+=possible[Math.floor(Math.random() * (max - min + 1)) + min]; //The maximum is inclusive and the minimum is inclusive 
+  }
+    return text;
+}
 function swap(items, firstIndex, secondIndex){
   var temp = items[firstIndex];
   items[firstIndex] = items[secondIndex];
   items[secondIndex] = temp;
+}
+function validateEmail(email) {
+  var re =/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
 }
 function partition(items, left, right,sta) {
 
@@ -41,19 +56,19 @@ function partition(items, left, right,sta) {
 
 
     switch(sta) {
-      case 'jeft': 
+      case 'jeft':
       while (Number(items[i].cena) < Number(pivot.cena)) i++;
       while (Number(items[j].cena) > Number(pivot.cena)) j--;
       break;
-      case 'skup': 
+      case 'skup':
       while (Number(items[i].cena) > Number(pivot.cena)) i++;
       while (Number(items[j].cena) < Number(pivot.cena)) j--;
       break;
-      case 'manje': 
+      case 'manje':
       while (Number(items[i].kvadratura) < Number(pivot.kvadratura)) i++;
       while (Number(items[j].kvadratura) > Number(pivot.kvadratura)) j--;
       break;
-      case 'vece': 
+      case 'vece':
       while (Number(items[i].kvadratura) > Number(pivot.kvadratura)) i++;
       while (Number(items[j].kvadratura) < Number(pivot.kvadratura)) j--;
       break;
@@ -94,11 +109,11 @@ function quickSort(sta,items, left, right) {
 
 
 
-app.use(function(req, res, next) 
+app.use(function(req, res, next)
 {/*
   if (req.url=='/') {
     if(req.session.user)
-    { 
+    {
       res.writeHead(302,{'Location':'home'})
       next();
     }
@@ -108,7 +123,7 @@ app.use(function(req, res, next)
     console.log('u middle');
     console.log(req.session.user)
     if(req.session.user)
-    {      
+    {
       next();
     }
     else
@@ -178,11 +193,11 @@ app.get("/json",function(req,res)
     res.end(JSON.stringify(a));
 })
 
-  
+
 })
 app.post('/registrationId',function(req,res)
 {
-    
+
     if(req.session.user)
     {
       console.log('REGISTRATION  ID');
@@ -207,6 +222,34 @@ app.post('/registrationId',function(req,res)
       console.log('not logged in');
     }
 })
+app.get('/confirmation/:code',function(req,res)
+{
+    var code=req.params.code;
+    var users=db.collection('users');
+    users.findOne({code:code},{id:1,email:1},function(err,res)
+    {
+        if(res.length)
+        {
+
+          users.update({email:res.email},{$set:{accountConfirmed:1,code:undefined}},function(err,resp)
+          {
+              if(!err)
+              {
+                res.send('You have successfully activated your account');
+              }
+              else
+              {
+                res.send('Error 404');
+              }
+          })
+          
+        }
+        else
+        {
+          res.send('Error 404');
+        }
+    })
+})
 app.post('/register',function(req,res)
 {
   console.log('REGISTER');
@@ -216,43 +259,63 @@ app.post('/register',function(req,res)
 
       users.find({"email":req.body.email,"password":req.body.password},{}).toArray(function(err,re)
       {
-        if(re.length)
+        users.find().sort({userId:1}).limit(1).toArray(function(err,maxUserId)
         {
-          console.log('IMA TAKVOG USERA');
-          if(req.headers.aplikacija) {
-            console.log('aplikacija')
-            res.send('-1');
-          } else {
-            res.writeHead(302,{'Location':'/register'})
-          }
-          res.end();
-        }
-        else
-        {
-          console.log('Nema usera');
-          var obj={};obj.email=req.body.email;obj.password=req.body.password;
-          req.session.user = obj;
-          console.log(obj)
-          users.insert(obj,function(err,r)
+          console.log(maxUserId);
+          if(re.length)
           {
-            if(!err)
-            {
-             console.log('create user:'+req.body.email);
-             if(req.headers.aplikacija) {
+            console.log('IMA TAKVOG USERA');
+            if(req.headers.aplikacija) 
+              {
               console.log('aplikacija')
-              res.send('1');
-            } else {
-              res.writeHead(302,{'Location':'/home'})
+              res.send('-1');
+            }
+            else 
+            {
+                res.writeHead(302,{'Location':'/register'})
             }
             res.end();
           }
-          else console.log(err);
-        });
+          else
+          {
+            if(validateEmail(req.body.email))
+            {
+              //send email here
+              console.log('Nema usera');
+              var obj={};obj.email=req.body.email;obj.password=req.body.password;
+              //generating confirmation hash
+              obj.code=generateHash(75);
+              if(maxUserId.length)obj.id=maxUserId[0].userId;
+              else obj.id=1;
+              req.session.user = obj;
+              console.log(obj)
+              users.insert(obj,function(err,r)
+              {
+                if(!err)
+                {
+                console.log('create user:'+req.body.email);
+                if(req.headers.aplikacija) {
+                  console.log('aplikacija')
+                  res.send('1');
+                } else {
+                  res.writeHead(302,{'Location':'/home'})
+                }
+                res.end();
+              }
+              else console.log(err);
+            });
+          }
+          else
+          {
+            res.send("0");
+            res.end();
+          }
         }
+        })
       })
 
     }
-    else 
+    else
     {
       console.log('NE VALJA ')
       if(req.headers.aplikacija) {
@@ -293,12 +356,12 @@ app.post("/login",function(req,res)
         }
         else
         {
-          if(req.headers.aplikacija) 
+          if(req.headers.aplikacija)
           {
             console.log('aplikacija')
             res.send('0')
-          } 
-          else 
+          }
+          else
           {
             res.writeHead(302,{'Location':'/login'})
           }
@@ -322,7 +385,7 @@ app.get('/stari',function(req,res)
   res.sendFile('views/index1.html',{root:__dirname});
 })
 app.post('/endpoint', function(req, res){
-  
+
     if(!req.body.namena)
       {
         req.body.namena='Izdavanje';
@@ -333,7 +396,7 @@ app.post('/endpoint', function(req, res){
     }
   var oglasi=db.collection('oglasi');
   oglasi.find({"ime":new RegExp(req.body.namena+'stan')}).toArray(function(err,r)
-  { 
+  {
 
       console.log(req.body);
 
@@ -374,7 +437,7 @@ app.post('/endpoint', function(req, res){
         var queryObject ={};
         if(req.body.cena)
         {
-          queryObject.cena={$gte:req.body.cena[0],$lte:req.body.cena[1]};//Formiram queyr samo ukoliko su parametri zadati za cenu 
+          queryObject.cena={$gte:req.body.cena[0],$lte:req.body.cena[1]};//Formiram queyr samo ukoliko su parametri zadati za cenu
         }
         if(req.body.kvadratura)
         {
@@ -382,23 +445,25 @@ app.post('/endpoint', function(req, res){
         }
         if(req.body.roomNumber)
         {
-           queryObject.brojsoba={$gte:req.body.roomNumber[0],$lte:req.body.roomNumber[1]};//brojsoba
+           if(req.body.roomNumber.length>0){
+            queryObject.brojsoba={$in:req.body.roomNumber};//brojsoba
+           }
         }
 
-        
+
         var queryy = kolekcija.find(queryObject).sort(sortOptions);
 
-        queryy.count(function (e, count) 
+        queryy.count(function (e, count)
         {
           queryy.skip(req.body.scroll*18-18).limit(18).toArray(function(err,re){
-          
+
               var solv = {};
               solv.count = count;
               solv.oglasi = re;
               solv.session = req.session.user ? 1:0;
               //console.log(solv);
               res.send(JSON.stringify(solv))
-            
+
           })
 
         })
@@ -413,39 +478,44 @@ app.post('/alertpoint',function(req,res)
   console.log(req.session);
   if(req.session.user.email)
   {
+    var users=db.collection("users");
     var alerts=db.collection('alerts');
     console.log(req.body)
-    var obj={}
-    obj.email=req.session.user.email;
-    obj.cenalow=Number(req.body.cena[0]);
-    obj.cenahigh=Number(req.body.cena[1]);
-    obj.kvadraturalow=Number(req.body.kvadratura[0]);
-    obj.kvadraturahigh=Number(req.body.kvadratura[1]);
-    obj.brojsoba=req.body.brojsoba;
-    obj.vrsta=req.body.vrsta;
-    obj.lokacija=req.body.lokacija;
-    obj.namena=req.body.namena;
-    obj.nazivAlerta=req.body.ime;
-    console.log(obj);
-    console.log('ovde sam');
-    alerts.insert(obj,function(err)
+    users.findOne({email:req.session.user.email},function(err,resp)//THISmight be stored in session so reqeust from database is not necessary
     {
-      if(err) {
-        console.log(err)
-      } else {
-        res.end('1')
-      }
+      var obj={}
+      obj.email=req.session.user.email;
+      obj.userId=resp._id;
+      if(req.body.cena[0])obj.cenalow=Number(req.body.cena[0]);
+      if(req.body.cena[1])obj.cenahigh=Number(req.body.cena[1]);
+      if(req.body.kvadratura[0])obj.kvadraturalow=Number(req.body.kvadratura[0]);
+      if(req.body.kvadratura[1])obj.kvadraturahigh=Number(req.body.kvadratura[1]);
+      if(req.body.roomNumber)obj.brojsoba=Number(req.body.roomNumber);
+      obj.vrsta=req.body.vrsta;
+      obj.lokacija=req.body.lokacija;
+      obj.namena=req.body.namena;
+      obj.nazivAlerta=req.body.ime;
+      console.log(obj);
+      console.log('ovde sam');
+      alerts.insert(obj,function(err)
+      {
+        if(err) {
+          console.log(err)
+        } else {
+          res.end('1')
+        }
+      })
     })
   }
   else console.log('ALERTPOINTU FALI SESIJA KORISNIKA');
 })
-app.post('/getalerts', function(req,res) 
+app.post('/getalerts', function(req,res)
 {
   var alerts=db.collection('alerts');
   var matching=db.collection('matching');
   var responseToUser={};
 
-alerts.find({"email":req.session.user.email}).toArray(function(err,odg) 
+alerts.find({"email":req.session.user.email}).toArray(function(err,odg)
 {
 /*
 OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
@@ -455,7 +525,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       async.each(odg,function(alert,callb)
       {
         responseToUser[alert.nazivAlerta]=alert;
-        matching.find({idalert:new ObjectId(odg.id),"seen":0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO KATASTROFA PO EFIKASNOST
+        matching.find({idalert:new ObjectId(odg.id),"seen":0}).limit(18).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
         {
           if(!matchings)console.log('matcg ne valja');
            responseToUser[alert.nazivAlerta].numberOfUnseenAds=matchings.length;
@@ -466,10 +536,10 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       {
         res.send(responseToUser);
       })
-        
+
   });
 })
-  app.post('/deletealert', function(req,res) 
+  app.post('/deletealert', function(req,res)
   {
     var alerts=db.collection('alerts');
     console.log(req.session.user.email);
@@ -477,7 +547,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
     //sql.select('delete FROM alerts WHERE email="'+req.session.user[0].email+'" AND id = '+req.body.id,function(odg) {
       console.log('delete')
       console.log(req.body);
-      var id = req.body.id;       
+      var id = req.body.id;
       var o_id = new ObjectId(id);
       alerts.deleteOne({"email":req.session.user.email,"_id":o_id},function(err,odg)
       {
@@ -490,7 +560,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
           }
         });
   });
-app.post('/givealerts',function(req,res)
+  app.post('/givealerts',function(req,res)
   {
   
     var alerts=db.collection('alerts');
@@ -503,7 +573,7 @@ app.post('/givealerts',function(req,res)
         var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
         cursor.count(function(e,count)
         {
-          cursor.sort({datum:-1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)//start page 1
+          cursor.sort({datum:-1,naslov:1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)
           {
             console.log(odg);
   
