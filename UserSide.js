@@ -503,7 +503,7 @@ app.post('/givealerts',function(req,res)
         var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
         cursor.count(function(e,count)
         {
-          cursor.skip(pageNum*18-18).limit(18).toArray(function(err,odg)
+          cursor.sort({datum:-1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)//start page 1
           {
             console.log(odg);
   
