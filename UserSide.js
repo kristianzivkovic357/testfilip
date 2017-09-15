@@ -486,7 +486,7 @@ app.post('/alertpoint',function(req,res)
     {
       var obj={}
       obj.email=req.session.user.email;
-      obj.userId=resp._id;
+      obj.userId=resp.id;
       if(req.body.cena[0])obj.cenalow=Number(req.body.cena[0]);
       if(req.body.cena[1])obj.cenahigh=Number(req.body.cena[1]);
       if(req.body.kvadratura[0])obj.kvadraturalow=Number(req.body.kvadratura[0]);
