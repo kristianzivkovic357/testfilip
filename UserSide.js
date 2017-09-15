@@ -8,6 +8,7 @@ var ObjectId = require('mongodb').ObjectId;
 var exec=require('child_process').exec;
 //var sender=require('./sender.js');
 //var sql=require('./sql.js');
+/*
 var child = exec('node ./senderb.js');
 child.stdout.on('data', function(data) {
     console.log('stdout: ' + data);
@@ -17,7 +18,7 @@ child.stderr.on('data', function(data) {
 });
 child.on('close', function(code) {
     console.log('closing code: ' + code);
-});
+});*/
 app.use(session({
   cookieName: 'session',
   secret: 'Vojvoda*?od?!Vince357',
