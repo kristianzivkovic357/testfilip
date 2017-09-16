@@ -488,12 +488,12 @@ app.post('/alertpoint',function(req,res)
       obj.email=req.session.user.email;
       obj.userId=resp.id;
       if(req.body.cena)obj.cenalow=Number(req.body.cena[0]);
-      if(req.body.cena.length)
+      if(req.body.cena)
       {
         if(req.body.cena[0])obj.cenalow=Number(req.body.cena[0]);
         if(req.body.cena[1])obj.cenahigh=Number(req.body.cena[1]);
       }
-      if(req.body.kvadratura.length)
+      if(req.body.kvadratura)
       {
         if(req.body.kvadratura[0])obj.kvadraturalow=Number(req.body.kvadratura[0]);
         if(req.body.kvadratura[1])obj.kvadraturahigh=Number(req.body.kvadratura[1]);
