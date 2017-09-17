@@ -542,7 +542,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       async.each(odg,function(alert,callb)
       {
         responseToUser[alert.nazivAlerta]=alert;
-        matching.find({idalert:new ObjectId(odg._id),seen:0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
+        matching.find({idalert:new ObjectId(alert._id),seen:0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
         {
           if(!matchings.length)console.log('Nije nadjen nijedan matching');
           console.log(matchings.length)
