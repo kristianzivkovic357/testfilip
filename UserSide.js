@@ -334,7 +334,6 @@ app.post("/login",function(req,res)
 {
 	if((req.body.email)&&(req.body.password))
 	{
-    console.log('USO')
     var users=db.collection('users');
     users.findOne({"email":req.body.email,"password":req.body.password},{},function(err,r)
     {
@@ -370,7 +369,6 @@ app.post("/login",function(req,res)
         }
       }
     })
-
   }
 })
 app.get('/home',function(req,res)
@@ -611,17 +609,21 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
                     callback();
                     //samo gledam kad je kraj
                   })
-                  match.seen=1;
-                  matching.update({"_id":new ObjectId(match._id)},match,function(err,resp)
-                  {
-                    if(err)console.log(err);
-                  })
+                 
               
               },function(err)
               {
                 respObj.data=data;
                 res.send(respObj);
                 res.end();
+                async.each(odg,function(oneMatch,end)
+                {
+                oneMatch.seen=1;
+                matching.update({"_id":new ObjectId(oneMatch._id)},oneMatch,function(err,r)
+                {
+                  if(r)console.log(r);
+                })
+              })
               })
             }
             else
