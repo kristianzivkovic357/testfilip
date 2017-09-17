@@ -590,7 +590,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
         var cursor=matching.find({"idalert":new ObjectId(req.body.idOfAlert)});
         cursor.count(function(e,count)
         {
-          cursor.sort({datum:-1,naslov:1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)
+          cursor.sort({seen:1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)
           {
             console.log(odg);
   
@@ -600,10 +600,10 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
               respObj.numberOfAdverts=count;
               var data=[];
                 
-                async.each(odg,function(match,callback)
+                async.eachSeries(odg,function(match,callback)
                 {
-                  var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA
-                  oglasi.find({"link":match.idogl}).toArray(function(err,objToSend)
+                  var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA prodajazemljiste i to, u bazi je polje websitename zapravo to
+                  oglasi.findOne({"link":match.idogl},function(err,objToSend)
                   {
                     data.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
                     callback();
