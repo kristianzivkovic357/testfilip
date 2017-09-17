@@ -396,11 +396,8 @@ app.post('/endpoint', function(req, res){
       req.body.vrsta='stan';
     }
   var oglasi=db.collection('oglasi');
-  oglasi.find({"ime":new RegExp(req.body.namena+'stan')}).toArray(function(err,r)
+  oglasi.find({"ime":new RegExp(req.body.namena+req.body.vrsta)}).toArray(function(err,r)
   {
-
-      console.log(req.body);
-
       if(r.length)
       {
         var sortOptions={};
@@ -521,11 +518,21 @@ app.post('/alertpoint',function(req,res)
 app.post('/getalerts', function(req,res)
 {
   var alerts=db.collection('alerts');
-  var matching=db.collection('matching');
+  var matching
   var responseToUser={};
 
 alerts.find({"email":req.session.user.email}).toArray(function(err,odg)
 {
+
+  if(odg.length)
+  {
+    matching=db.collection(odg[0].userId.toString());
+  }
+  else
+  {
+    res.send("-1");
+    res.end();
+  } 
 /*
 OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
 ---JEDE PRENOS PODATAKA---
@@ -536,7 +543,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
         responseToUser[alert.nazivAlerta]=alert;
         matching.find({idalert:new ObjectId(odg.id),"seen":0}).limit(18).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
         {
-          if(!matchings)console.log('matcg ne valja');
+          if(!matchings)console.log('match ne valja');
            responseToUser[alert.nazivAlerta].numberOfUnseenAds=matchings.length;
            callb();
         })
@@ -544,6 +551,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       },function(err)
       {
         res.send(responseToUser);
+        res.end();
       })
 
   });
