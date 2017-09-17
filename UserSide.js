@@ -592,7 +592,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
         {
           cursor.sort({seen:1}).skip(pageNum*18-18).limit(18).toArray(function(err,odg)
           {
-            console.log(odg);
+            //console.log(odg);
   
             if(odg.length)
             {
@@ -605,7 +605,8 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
                   var oglasi= db.collection(match.websitename);//OOV JE USTVARI KOJA TABELA SE UZIMA prodajazemljiste i to, u bazi je polje websitename zapravo to
                   oglasi.findOne({"link":match.idogl},function(err,objToSend)
                   {
-                    data.push({"seen":match.seen,"contentOfAdvert":objToSend[0]});
+
+                    data.push({"seen":match.seen,"contentOfAdvert":objToSend});
                     callback();
                     //samo gledam kad je kraj
                   })
@@ -621,7 +622,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
                 oneMatch.seen=1;
                 matching.update({"_id":new ObjectId(oneMatch._id)},oneMatch,function(err,r)
                 {
-                  if(r)console.log(r);
+                  if(r){console.log("ERROOR:");console.log(r);}
                 })
               })
               })
