@@ -530,6 +530,7 @@ alerts.find({"email":req.session.user.email}).toArray(function(err,odg)
   }
   else
   {
+    console.log("No alerts added");
     res.send("-1");
     res.end();
   } 
@@ -541,7 +542,7 @@ OPTIMIZACIJA BRISANJE PODATAKA KOJIH NE TREBA NA FRONTU
       async.each(odg,function(alert,callb)
       {
         responseToUser[alert.nazivAlerta]=alert;
-        matching.find({idalert:new ObjectId(odg.id),"seen":0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
+        matching.find({idalert:new ObjectId(odg.id),seen:0}).toArray(function(err,matchings)//DODAVANJE SKIPA OBAVEZNO
         {
           if(!matchings)console.log('match ne valja');
           console.log(matchings.length)
