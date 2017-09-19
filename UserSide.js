@@ -439,6 +439,10 @@ app.post('/endpoint', function(req, res){
         {
           queryObject.kvadratura={$gte:req.body.kvadratura[0],$lte:req.body.kvadratura[1]};//isto za kvadraturu
         }
+        if(req.body.lokacija)
+        {
+            queryObject.lokacija=req.body.lokacija
+        }
         if(req.body.roomNumber)
         {
            if(req.body.roomNumber.length>0){
@@ -471,7 +475,7 @@ app.post('/endpoint', function(req, res){
 app.post('/alertpoint',function(req,res)
 {
   res.header('Access-Control-Allow-Credentials', 'true');
-  console.log(req.session);
+ 
   if(req.session.user.email)
   {
     var users=db.collection("users");
@@ -481,9 +485,9 @@ app.post('/alertpoint',function(req,res)
     {
       var obj={}
       obj.email=req.session.user.email;
-      obj.userId=resp.id;
+      if(resp.id)obj.userId=resp.id;
       if(req.body.cena)obj.cenalow=Number(req.body.cena[0]);
-      if(req.body.cena)
+      if(req.body.cena)//
       {
         if(req.body.cena[0])obj.cenalow=Number(req.body.cena[0]);
         if(req.body.cena[1])obj.cenahigh=Number(req.body.cena[1]);
@@ -511,7 +515,11 @@ app.post('/alertpoint',function(req,res)
       })
     })
   }
-  else console.log('ALERTPOINTU FALI SESIJA KORISNIKA');
+  else
+  {
+    console.log('ALERTPOINTU FALI SESIJA KORISNIKA');
+    res.end();
+  }
 })
 app.post('/getalerts', function(req,res)
 {
