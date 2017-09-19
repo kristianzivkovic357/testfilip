@@ -398,6 +398,7 @@ app.post('/endpoint', function(req, res){
   {
       if(r.length)
       {
+        console.log(req.body)
         var sortOptions={};
         if(req.body.sort=="ascPrice")
         {
