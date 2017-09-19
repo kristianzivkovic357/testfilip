@@ -441,7 +441,8 @@ app.post('/endpoint', function(req, res){
         }
         if(req.body.lokacija)
         {
-            if(queryObject.lokacija.length)queryObject.lokacija=req.body.lokacija;
+            console.log(req.body.lokacija)
+            if(req.body.lokacija.length)queryObject.lokacija=req.body.lokacija;
         }
         if(req.body.roomNumber)
         {
