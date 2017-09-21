@@ -129,8 +129,8 @@ app.use(function(req, res, next)
     }
     else
     {
-      console.log('Nema sesiju')
-      if(req.headers.aplikacija) {
+      
+      if((req.headers.aplikacija)||(req.url=='/getalerts')) {
         res.end('NO_SESSION');
       } else {
         res.writeHead(302,{'Location':'/'})
@@ -460,8 +460,8 @@ app.post('/endpoint', function(req, res){
 
         queryy.count(function (e, count)
         {
-          queryy.skip(req.body.scroll*18-18).limit(18).toArray(function(err,re){
-
+          queryy.skip(req.body.scroll*18-18).limit(18).toArray(function(err,re)
+          {
               var solv = {};
               solv.count = count;
               solv.oglasi = re;
