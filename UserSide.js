@@ -133,7 +133,9 @@ app.use(function(req, res, next)
       console.log('nema sesiju');
       if((req.headers.aplikacija)||(req.url=='/getalerts')) {
         console.log("NO_SESS");
-        res.send('NO_SESSION');
+        var obj={};
+        obj.session="NO_SESSION";
+        res.send(obj);
         res.end();
       } else {
         console.log("redirect to home");
