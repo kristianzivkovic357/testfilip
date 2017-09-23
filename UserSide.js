@@ -125,14 +125,18 @@ app.use(function(req, res, next)
     console.log(req.session.user)
     if(req.session.user)
     {
+      console.log('ima sesiju');
       next();
     }
     else
     {
-      
+      console.log('nema sesiju');
       if((req.headers.aplikacija)||(req.url=='/getalerts')) {
-        res.end('NO_SESSION');
+        console.log("NO_SESS");
+        res.send('NO_SESSION');
+        res.end();
       } else {
+        console.log("redirect to home");
         res.writeHead(302,{'Location':'/'})
       }
     }
